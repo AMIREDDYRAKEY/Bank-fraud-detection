@@ -4,7 +4,8 @@ import {
   MoreVertical,
   Search,
   Filter,
-  Inbox
+  Inbox,
+  User
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,6 +20,14 @@ const TransactionsTable = ({ transactions = [], onViewDetails }) => {
         return 'bg-red-500/10 text-red-400 border-red-500/20';
       default:
         return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'SUCCESS': return 'text-green-400';
+      case 'BLOCKED': return 'text-red-400';
+      default: return 'text-gray-400';
     }
   };
 
@@ -51,18 +60,18 @@ const TransactionsTable = ({ transactions = [], onViewDetails }) => {
             <tr className="border-b border-white/5 bg-white/[0.02]">
               <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Transaction ID</th>
               <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Time</th>
-              <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Source/Target</th>
+              <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Receiver</th>
               <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Amount</th>
               <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Risk Score</th>
               <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-500 uppercase tracking-widest">Decision</th>
-              <th className="px-6 py-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">Actions</th>
+              <th className="px-6 py-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {transactions.length > 0 ? (
               transactions.map((txn, index) => (
                 <motion.tr 
-                  key={txn.id}
+                  key={txn._id || txn.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -70,16 +79,21 @@ const TransactionsTable = ({ transactions = [], onViewDetails }) => {
                   className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
                 >
                   <td className="px-6 py-5">
-                    <span className="text-xs font-mono font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{txn.id}</span>
+                    <span className="text-xs font-mono font-bold text-blue-400 group-hover:text-blue-300 transition-colors">
+                      {txn._id ? `TXN-${txn._id.slice(-6).toUpperCase()}` : txn.id}
+                    </span>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-xs text-gray-400 tabular-nums">{txn.time}</span>
+                    <span className="text-xs text-gray-400 tabular-nums">
+                      {txn.timestamp ? new Date(txn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : txn.time}
+                    </span>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-gray-300 tabular-nums">{txn.source}</span>
-                      <ArrowUpRight className="w-3 h-3 text-gray-600" />
-                      <span className="text-xs font-bold text-gray-300 tabular-nums">{txn.target}</span>
+                      <div className="p-1.5 bg-white/5 rounded-lg">
+                        <User className="w-3 h-3 text-gray-500" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-300 tabular-nums">{txn.receiver_account || txn.target}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
@@ -93,23 +107,25 @@ const TransactionsTable = ({ transactions = [], onViewDetails }) => {
                       <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }}
-                          animate={{ width: `${txn.risk}%` }}
+                          animate={{ width: `${(txn.risk_score * 100) || txn.risk}%` }}
                           transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                          className={`h-full rounded-full ${txn.risk > 70 ? 'bg-red-500' : txn.risk > 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                          className={`h-full rounded-full ${((txn.risk_score * 100) || txn.risk) > 70 ? 'bg-red-500' : ((txn.risk_score * 100) || txn.risk) > 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
                         />
                       </div>
-                      <span className="text-[10px] font-mono font-bold text-gray-400 tabular-nums">{txn.risk}%</span>
+                      <span className="text-[10px] font-mono font-bold text-gray-400 tabular-nums">
+                        {Math.round((txn.risk_score * 100) || txn.risk)}%
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
                     <span className={`px-2 py-1 rounded-md text-[9px] font-black tracking-widest border ${getBadgeStyle(txn.decision)}`}>
-                      {txn.decision}
+                      {txn.decision === 'BLOCK' ? 'HOLD' : txn.decision}
                     </span>
                   </td>
                   <td className="px-6 py-5 text-center">
-                    <button className="p-1.5 hover:bg-white/5 rounded-lg text-gray-600 hover:text-white transition-all">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${getStatusStyle(txn.status)}`}>
+                      {txn.status || 'SUCCESS'}
+                    </span>
                   </td>
                 </motion.tr>
               ))

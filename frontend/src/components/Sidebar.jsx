@@ -17,7 +17,7 @@ const menuItems = [
   { icon: Settings, label: 'Settings' },
 ];
 
-const Sidebar = ({ activeView, onViewChange }) => {
+const Sidebar = ({ activeView, onViewChange, alertBadge = 0 }) => {
   return (
     <aside className="fixed left-0 top-[73px] bottom-0 w-64 glass-dark border-r border-white/5 flex flex-col p-4 z-40">
       <div className="space-y-2">
@@ -26,10 +26,17 @@ const Sidebar = ({ activeView, onViewChange }) => {
             key={item.label}
             whileHover={{ x: 4 }}
             onClick={() => onViewChange(item.label)}
-            className={`w-full nav-link group ${activeView === item.label ? 'active' : ''}`}
+            className={`w-full nav-link group relative ${activeView === item.label ? 'active' : ''}`}
           >
             <item.icon className={`w-5 h-5 transition-colors ${activeView === item.label ? 'text-blue-400' : 'group-hover:text-white'}`} />
             <span className="flex-1 text-left font-medium">{item.label}</span>
+            
+            {item.label === 'Alerts' && alertBadge > 0 && (
+              <span className="absolute right-4 px-1.5 py-0.5 rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg shadow-red-500/30 animate-pulse">
+                {alertBadge}
+              </span>
+            )}
+
             {activeView === item.label && (
               <motion.div 
                 layoutId="active-indicator"

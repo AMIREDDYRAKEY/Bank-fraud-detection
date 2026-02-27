@@ -39,14 +39,24 @@ const Charts = ({ transactions = [] }) => {
     if (transactions.length === 0) return { lineData: [], barData: [], pieData: [] };
 
     // Line Data: Risk scores over time (last 10 transactions)
-    const line = [...transactions].reverse().slice(-10).map(t => ({
-      name: t.time.split(':')[0] + ':' + t.time.split(':')[1], // HH:MM
-      risk: t.risk
-    }));
+    const line = [...transactions].reverse().slice(-10).map(t => {
+      let timeLabel = '00:00';
+      if (t.timestamp) {
+        const date = new Date(t.timestamp);
+        timeLabel = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (t.time) {
+        timeLabel = t.time.split(':')[0] + ':' + t.time.split(':')[1];
+      }
+      
+      return {
+        name: timeLabel,
+        risk: t.risk_score !== undefined ? Math.round(t.risk_score * 100) : (t.risk || 0)
+      };
+    });
 
     // Bar Data: Transaction amounts
     const bar = [...transactions].reverse().slice(-7).map(t => ({
-      name: t.id.split('-')[1],
+      name: (t._id ? t._id.slice(-4).toUpperCase() : (t.id ? t.id.split('-')[1] : 'TXN')),
       vol: t.amount
     }));
 

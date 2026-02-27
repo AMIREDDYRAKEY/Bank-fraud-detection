@@ -17,8 +17,10 @@ import {
 const ReportModal = ({ isOpen, onClose, data }) => {
   if (!isOpen || !data) return null;
 
-  const { risk_score, decision, model, id, time, amount, source, target, explanation } = data;
-  const score = Math.round(risk_score * 100);
+  const { decision, model, id, time, amount, source, target, explanation } = data;
+  
+  // Handle risk score from either risk_score (API) or risk (Session History)
+  const score = data.risk_score !== undefined ? Math.round(data.risk_score * 100) : (data.risk || 0);
 
   const getStatusConfig = () => {
     switch (decision) {
@@ -121,21 +123,23 @@ const ReportModal = ({ isOpen, onClose, data }) => {
                   <Zap className="w-3 h-3" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Decision</span>
                 </div>
-                <p className="text-sm font-bold text-white uppercase truncate">{decision}</p>
+                <p className="text-sm font-bold text-white uppercase truncate">{decision === 'BLOCK' ? 'HOLD' : decision}</p>
               </div>
               <div className="glass p-4 rounded-xl border border-white/5">
                 <div className="flex items-center gap-2 mb-2 text-gray-500">
                   <Clock className="w-3 h-3" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Timestamp</span>
                 </div>
-                <p className="text-sm font-bold text-white">{time || 'Now'}</p>
+                <p className="text-sm font-bold text-white">
+                  {time || (data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : 'Now')}
+                </p>
               </div>
               <div className="glass p-4 rounded-xl border border-white/5">
                 <div className="flex items-center gap-2 mb-2 text-gray-500">
                   <Database className="w-3 h-3" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Engine</span>
                 </div>
-                <p className="text-sm font-bold text-blue-400 font-mono">Ensemble v1</p>
+                <p className="text-sm font-bold text-blue-400 font-mono">{model || 'Ensemble v1'}</p>
               </div>
             </div>
 

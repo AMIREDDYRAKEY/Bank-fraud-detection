@@ -91,7 +91,7 @@ const ResultCard = ({ result, onViewDetails }) => {
         </motion.div>
 
         <h3 className={`text-3xl font-black uppercase tracking-tighter mb-2 ${style.color}`}>
-          {style.text}
+          {decision === 'BLOCK' ? 'HOLD' : decision}
         </h3>
         
         <div className="flex items-center gap-2 mb-6">
