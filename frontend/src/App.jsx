@@ -10,6 +10,7 @@ import TransactionForm from './components/TransactionForm';
 import ResultCard from './components/ResultCard';
 import Charts from './components/Charts';
 import TransactionsTable from './components/TransactionsTable';
+import ReportModal from './components/ReportModal';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -30,6 +31,8 @@ function App() {
   const [riskScore, setRiskScore] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [activeView, setActiveView] = useState('Dashboard');
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [selectedReportData, setSelectedReportData] = useState(null);
   const [systemSettings, setSystemSettings] = useState({
     threshold: 0.3,
     autoBlock: true,
@@ -82,20 +85,30 @@ function App() {
         finalDecision = 'APPROVE';
       }
 
-      const processedResult = { ...result, decision: finalDecision };
+      const processedResult = { 
+        ...result, 
+        decision: finalDecision,
+        id: `TXN-${Math.floor(Math.random() * 900000) + 100000}`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        source: formData.Source,
+        target: formData.Target,
+        amount: formData.Weight,
+        explanation: result.explanation || []
+      };
       
       setPredictionResult(processedResult);
       setRiskScore(prob * 100);
       
       // Add to transaction history
       const newTransaction = {
-        id: `TXN-${Math.floor(Math.random() * 900000) + 100000}`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        source: formData.Source,
-        target: formData.Target,
-        amount: formData.Weight,
+        id: processedResult.id,
+        time: processedResult.time,
+        source: processedResult.source,
+        target: processedResult.target,
+        amount: processedResult.amount,
         risk: Math.round(prob * 100),
-        decision: finalDecision
+        decision: finalDecision,
+        explanation: processedResult.explanation
       };
       setTransactions(prev => [newTransaction, ...prev]);
       
@@ -128,8 +141,13 @@ function App() {
       console.error('Prediction error:', error);
       toast.error('Prediction failed. Please check backend connection.', { id: toastId });
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
+  };
+
+  const openReport = (data) => {
+    setSelectedReportData(data);
+    setIsReportOpen(true);
   };
 
   return (
@@ -193,7 +211,7 @@ function App() {
                       <TransactionForm onPredict={handlePredict} loading={loading} />
                     </div>
                     <div className="xl:col-span-5">
-                      <ResultCard result={predictionResult} />
+                      <ResultCard result={predictionResult} onViewDetails={openReport} />
                     </div>
                   </div>
 
@@ -206,20 +224,20 @@ function App() {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
-                      <h2 className="text-lg font-bold text-white uppercase tracking-wider">Recent Activity</h2>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+                        <h2 className="text-lg font-bold text-white uppercase tracking-wider">Recent Activity</h2>
+                      </div>
+                      <TransactionsTable transactions={transactions} onViewDetails={openReport} />
                     </div>
-                    <TransactionsTable transactions={transactions} />
-                  </div>
                 </div>
               )}
 
               {activeView === 'Transactions' && (
-                <div className="space-y-6">
-                  <TransactionsTable transactions={transactions} />
-                </div>
-              )}
+                 <div className="space-y-6">
+                   <TransactionsTable transactions={transactions} onViewDetails={openReport} />
+                 </div>
+               )}
 
               {activeView === 'Risk Monitor' && (
                 <div className="space-y-8">
@@ -419,6 +437,13 @@ function App() {
       {/* Background blobs */}
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
       <div className="fixed bottom-0 left-64 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+
+      {/* Report Modal */}
+      <ReportModal 
+        isOpen={isReportOpen} 
+        onClose={() => setIsReportOpen(false)} 
+        data={selectedReportData} 
+      />
     </div>
   );
 }

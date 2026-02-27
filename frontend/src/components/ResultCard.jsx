@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ResultCard = ({ result }) => {
+const ResultCard = ({ result, onViewDetails }) => {
   if (!result) return (
     <div className="glass-card h-full flex flex-col items-center justify-center text-center p-12 border-dashed border-2 border-white/5 opacity-40">
       <div className="p-4 bg-white/5 rounded-full mb-4">
@@ -118,7 +118,10 @@ const ResultCard = ({ result }) => {
         </div>
       </div>
 
-      <button className="w-full py-4 bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-all border-t border-white/5 flex items-center justify-center gap-2 group">
+      <button 
+        onClick={() => onViewDetails(result)}
+        className="w-full py-4 bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-all border-t border-white/5 flex items-center justify-center gap-2 group"
+      >
         View Detailed Report
         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </button>

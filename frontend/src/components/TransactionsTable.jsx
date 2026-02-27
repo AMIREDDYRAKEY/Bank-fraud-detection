@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const TransactionsTable = ({ transactions = [] }) => {
+const TransactionsTable = ({ transactions = [], onViewDetails }) => {
   const getBadgeStyle = (decision) => {
     switch (decision) {
       case 'APPROVE':
@@ -66,7 +66,8 @@ const TransactionsTable = ({ transactions = [] }) => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="hover:bg-white/[0.03] transition-colors group cursor-default"
+                  onClick={() => onViewDetails && onViewDetails(txn)}
+                  className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
                 >
                   <td className="px-6 py-5">
                     <span className="text-xs font-mono font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{txn.id}</span>
