@@ -32,6 +32,7 @@ from models import (
     UserCreate,
     UserResponse,
     Token,
+    LoginRequest,
     TransactionCreate,
     TransactionInDB,
     FraudLog,
@@ -239,9 +240,9 @@ async def register(user_data: UserCreate):
     return new_user
 
 @app.post("/auth/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await users_collection.find_one({"email": form_data.username})
-    if not user or not verify_password(form_data.password, user["password_hash"]):
+async def login(login_data: LoginRequest):
+    user = await users_collection.find_one({"email": login_data.email})
+    if not user or not verify_password(login_data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

@@ -34,6 +34,10 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
 # Transaction Models
 class TransactionBase(BaseModel):
     receiver_account: str
