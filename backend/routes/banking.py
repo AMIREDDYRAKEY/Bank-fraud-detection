@@ -23,18 +23,24 @@ def send_whatsapp_alert(phone, name, msg=None):
     if not msg:
         msg = f"⚠ Fraud Alert for {name}. Account on HOLD."
     if not twilio_client:
+        print("Twilio client NOT configured. Skipping alert.")
         return True
+    
     phone = "".join(filter(str.isdigit, phone))
     if len(phone) == 10:
         phone = "91" + phone
+        
     try:
-        twilio_client.messages.create(
+        print(f"Sending WhatsApp alert to: {phone}")
+        message = twilio_client.messages.create(
             body=msg,
             from_=TWILIO_WHATSAPP_FROM,
             to=f"whatsapp:+{phone}"
         )
+        print(f"WhatsApp alert SENT. SID: {message.sid}")
         return True
-    except Exception:
+    except Exception as e:
+        print(f"ERROR: WhatsApp alert FAILED to {phone}: {e}")
         return False
 
 @router.post("/transaction/send")
@@ -88,21 +94,6 @@ async def send_money(tx: TransactionCreate):
         "decision": decision,
         "new_balance": new_balance,
         "explanation": reasons
-    }
-
-@router.get("/admin/stats")
-async def admin_stats():
-    total_users = await users_collection.count_documents({})
-    active = await users_collection.count_documents({"status": "ACTIVE"})
-    hold = await users_collection.count_documents({"status": "HOLD"})
-    total_tx = await transactions_collection.count_documents({})
-    fraud_tx = await transactions_collection.count_documents({"decision": "BLOCK"})
-    return {
-        "total_users": total_users,
-        "active_accounts": active,
-        "hold_accounts": hold,
-        "total_transactions": total_tx,
-        "fraud_transactions": fraud_tx
     }
 
 @router.get("/user/me")

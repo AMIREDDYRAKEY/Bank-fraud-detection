@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  XCircle, 
+import {
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
   Info,
   ArrowRight
 } from 'lucide-react';
@@ -26,7 +26,7 @@ const ResultCard = ({ result, onViewDetails }) => {
     switch (decision) {
       case 'APPROVE':
         return {
-          icon: CheckCircle2,
+          icon: CheckCircle,
           color: 'text-green-400',
           bg: 'bg-green-500/10',
           border: 'border-green-500/20',
@@ -35,6 +35,7 @@ const ResultCard = ({ result, onViewDetails }) => {
           msg: 'Transaction appears safe. No immediate fraud risk detected.',
           sub: 'Verified by AI v1'
         };
+      case 'OTP':
       case 'OTP_VERIFICATION':
         return {
           icon: AlertTriangle,
@@ -47,6 +48,7 @@ const ResultCard = ({ result, onViewDetails }) => {
           sub: 'Risk Score Elevated'
         };
       case 'BLOCK':
+      case 'HOLD':
         return {
           icon: XCircle,
           color: 'text-red-400',
@@ -58,12 +60,21 @@ const ResultCard = ({ result, onViewDetails }) => {
           sub: 'Critical Threat Level'
         };
       default:
-        return {};
+        return {
+          icon: Info,
+          color: 'text-gray-400',
+          bg: 'bg-gray-500/10',
+          border: 'border-gray-500/20',
+          shadow: 'shadow-gray-500/10',
+          text: 'UNKNOWN',
+          msg: 'Analysis result format unknown.',
+          sub: 'Internal System Note'
+        };
     }
   };
 
   const style = getStyle();
-  const Icon = style.icon;
+  const Icon = style.icon || Info;
 
   return (
     <motion.div
@@ -93,7 +104,7 @@ const ResultCard = ({ result, onViewDetails }) => {
         <h3 className={`text-3xl font-black uppercase tracking-tighter mb-2 ${style.color}`}>
           {decision === 'BLOCK' ? 'HOLD' : decision}
         </h3>
-        
+
         <div className="flex items-center gap-2 mb-6">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{style.sub}</span>
           <div className="w-1 h-1 rounded-full bg-gray-600" />
@@ -118,7 +129,7 @@ const ResultCard = ({ result, onViewDetails }) => {
         </div>
       </div>
 
-      <button 
+      <button
         onClick={() => onViewDetails(result)}
         className="w-full py-4 bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-all border-t border-white/5 flex items-center justify-center gap-2 group"
       >
